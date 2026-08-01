@@ -6,6 +6,16 @@ using TMPro;
 
 public class PageNavigationController : MonoBehaviour
 {
+    [System.Serializable]
+    public class PageRule
+    {
+        [Tooltip("If true, requires interaction to unlock the NEXT button.")]
+        public bool requiresInteraction = false;
+
+        [Tooltip("If true, locks BOTH Next and Previous buttons until EnableNavigationButtons() / RequestNavigationUnlock() is called.")]
+        public bool lockNavigationTillUnlocked = false;
+    }
+
     [Header("Navigation Buttons")]
     [SerializeField] private Button nextButton;
     [SerializeField] private Button previousButton;
@@ -20,8 +30,9 @@ public class PageNavigationController : MonoBehaviour
     [Header("Testing Mode (Ignore Locks)")]
     [SerializeField] private bool testing = false;
 
-    [Header("Requires Interaction Per Page (Navigation Source)")]
+    [Header("Requires Interaction & Manual Lock Per Page")]
     [SerializeField] private List<bool> requiresInteraction = new();
+    [SerializeField] private List<bool> lockNavigationTillUnlocked = new();
 
     // Events
     public static event Action<int> OnPageChanged;
@@ -124,11 +135,22 @@ public class PageNavigationController : MonoBehaviour
             return;
         }
 
+        bool isCompleted = completedPages.Contains(currentIndex);
+
+        // Check manual page lock boolean directly under existing interaction settings
+        bool isPageLocked = currentIndex < lockNavigationTillUnlocked.Count && lockNavigationTillUnlocked[currentIndex];
+
+        // If manual page lock is enabled for THIS specific page, block both buttons until unlocked
+        if (isPageLocked && !isCompleted)
+        {
+            if (previousButton) previousButton.interactable = false;
+            if (nextButton) nextButton.interactable = false;
+            return;
+        }
+
         bool needsInteraction =
             currentIndex < requiresInteraction.Count &&
             requiresInteraction[currentIndex];
-
-        bool isCompleted = completedPages.Contains(currentIndex);
 
         // Previous behaves normally
         if (previousButton)

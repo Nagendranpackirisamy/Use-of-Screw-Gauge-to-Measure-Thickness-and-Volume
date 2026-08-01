@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Events;
+using System.Collections;
 using System.Collections.Generic;
 
 public class PageAssetController : MonoBehaviour
@@ -17,18 +19,21 @@ public class PageAssetController : MonoBehaviour
     [System.Serializable]
     public class PageAssets
     {
-        [Header("Page Info")]
-        [Tooltip("Name of the page (for easier identification in Inspector)")]
-        public string pageName;
+        [Tooltip("Explicit 0-based page index (e.g., 0 = Page 1, 24 = Page 25)")]
+        public int pageIndex = 0;
 
         [Tooltip("Assets configuration for this page")]
         public List<PageAssetItem> assets = new List<PageAssetItem>();
+
+        [Header("Page Event")]
+        [Tooltip("UnityEvent triggered whenever this page becomes active.")]
+        public UnityEvent onPageEntered;
     }
 
     [Header("All Page Assets (Assign every asset once here)")]
     [SerializeField] private List<GameObject> allAssets = new List<GameObject>();
 
-    [Header("Per Page Asset Configuration (Index = Page Index)")]
+    [Header("Per Page Asset Configuration")]
     [SerializeField] private List<PageAssets> pageAssets = new List<PageAssets>();
 
     private void OnEnable()
@@ -41,36 +46,60 @@ public class PageAssetController : MonoBehaviour
         PageNavigationController.OnPageChanged -= HandlePageChanged;
     }
 
-    private void HandlePageChanged(int pageIndex)
+    private void HandlePageChanged(int targetPageIndex)
     {
-        if (pageIndex < 0 || pageIndex >= pageAssets.Count)
-            return;
-
         DisableAllAssets();
 
-        PageAssets currentPage = pageAssets[pageIndex];
+        PageAssets currentPage = GetPageAssetsByExactIndex(targetPageIndex);
 
-        if (currentPage == null || currentPage.assets == null)
+        if (currentPage == null)
             return;
 
-        foreach (var item in currentPage.assets)
+        // Activate page assets
+        if (currentPage.assets != null)
         {
-            if (item == null || item.asset == null)
-                continue;
-
-            if (item.enableOnce)
+            foreach (var item in currentPage.assets)
             {
-                if (item.hasBeenActivated)
+                if (item == null || item.asset == null)
                     continue;
 
-                item.asset.SetActive(true);
-                item.hasBeenActivated = true;
-            }
-            else
-            {
-                item.asset.SetActive(true);
+                if (item.enableOnce)
+                {
+                    if (item.hasBeenActivated)
+                        continue;
+
+                    item.asset.SetActive(true);
+                    item.hasBeenActivated = true;
+                }
+                else
+                {
+                    item.asset.SetActive(true);
+                }
             }
         }
+
+        // Trigger page-specific UnityEvent
+        currentPage.onPageEntered?.Invoke();
+    }
+
+    private PageAssets GetPageAssetsByExactIndex(int targetIndex)
+    {
+        // 1. First try matching by the explicit pageIndex field
+        foreach (var page in pageAssets)
+        {
+            if (page != null && page.pageIndex == targetIndex)
+            {
+                return page;
+            }
+        }
+
+        // 2. Fallback to list element position if within bounds
+        if (targetIndex >= 0 && targetIndex < pageAssets.Count)
+        {
+            return pageAssets[targetIndex];
+        }
+
+        return null;
     }
 
     private void DisableAllAssets()
