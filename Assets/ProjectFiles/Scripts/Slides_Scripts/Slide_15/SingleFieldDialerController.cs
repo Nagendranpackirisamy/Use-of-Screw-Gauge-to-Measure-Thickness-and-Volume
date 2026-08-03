@@ -6,21 +6,33 @@ using System.Collections;
 
 public class SingleFieldDialerController : MonoBehaviour
 {
-    [Header("Input")]
-    public TMP_InputField[] answerFields;
-    [Tooltip("Which answer field is currently active (0-based)")]
-    public int activeFieldIndex = 0;
+    [System.Serializable]
+    public class PageField
+    {
+        [Header("References")]
+        public TMP_InputField inputField;
+        public Image feedbackImage;
+        [Header("Audio")]
 
-    [Header("Correct Answer")]
-    public float[] correctAnswers;
 
-    [Header("Image Slots & Feedback Sprites")]
-    [Tooltip("4 Image slots corresponding to each answer field")]
-    public Image[] answerImageSlots = new Image[4];
+
+        [Header("Settings")]
+        public float correctAnswer;
+        public int pageIndex;
+
+        [HideInInspector]
+        public bool solved;
+    }
+
+    [Header("Page Fields")]
+    public PageField[] pageFields;
+    public AudioSource audioSource;
+    public AudioClip correctSound;
+    public AudioClip wrongSound; 
+
+    [Header("Feedback Sprites")]
     public Sprite correctSprite;
     public Sprite wrongSprite;
-
-    private Image ActiveImageSlot => (activeFieldIndex >= 0 && activeFieldIndex < answerImageSlots.Length) ? answerImageSlots[activeFieldIndex] : null;
 
     [Header("Buttons")]
     public Button validateButton;
@@ -35,25 +47,54 @@ public class SingleFieldDialerController : MonoBehaviour
     public UnityEvent OnWrongAnswer;
     public UnityEvent OnAllAnswersVerified;
 
-    private int wrongAttempts = 0;
-    private bool solved = false;
-    private bool isValidating = false;
-
     private PageNavigationController slideController;
 
-    private TMP_InputField ActiveField => (activeFieldIndex >= 0 && activeFieldIndex < answerFields.Length) ? answerFields[activeFieldIndex] : null;
-    private float ActiveAnswer => (activeFieldIndex >= 0 && activeFieldIndex < correctAnswers.Length) ? correctAnswers[activeFieldIndex] : 0f;
+    private int wrongAttempts;
+    private bool solved;
+    private bool isValidating;
 
-    void Start()
+    // Returns the field assigned to the current page
+    private PageField CurrentField
+    {
+        get
+        {
+            foreach (PageField field in pageFields)
+            {
+                if (field.pageIndex == PageNavigationController.CurrentIndex)
+                    return field;
+            }
+
+            return null;
+        }
+    }
+
+    private TMP_InputField ActiveField
+    {
+        get
+        {
+            return CurrentField != null ? CurrentField.inputField : null;
+        }
+    }
+
+    private float ActiveAnswer
+    {
+        get
+        {
+            return CurrentField != null ? CurrentField.correctAnswer : 0f;
+        }
+    }
+
+    private Image ActiveImage
+    {
+        get
+        {
+            return CurrentField != null ? CurrentField.feedbackImage : null;
+        }
+    }
+
+    private void Start()
     {
         slideController = FindFirstObjectByType<PageNavigationController>();
-
-        if (answerFields.Length != correctAnswers.Length)
-        {
-            Debug.LogError("Answer Fields and Correct Answers arrays must be the same size.");
-            enabled = false;
-            return;
-        }
 
         if (validateButton != null)
         {
@@ -74,18 +115,16 @@ public class SingleFieldDialerController : MonoBehaviour
     {
         isValidating = true;
 
-        if (ActiveImageSlot != null)
+        if (ActiveImage != null)
         {
-            ActiveImageSlot.sprite = wrongSprite;
-            ActiveImageSlot.gameObject.SetActive(true);
+            ActiveImage.sprite = wrongSprite;
+            ActiveImage.gameObject.SetActive(true);
         }
 
         yield return new WaitForSeconds(0.7f);
 
-        if (ActiveImageSlot != null)
-        {
-            ActiveImageSlot.gameObject.SetActive(false);
-        }
+        if (ActiveImage != null)
+            ActiveImage.gameObject.SetActive(false);
 
         if (ActiveField != null)
         {
@@ -96,17 +135,35 @@ public class SingleFieldDialerController : MonoBehaviour
 
         isValidating = false;
     }
-
     public void OnDigitPressed(string digit)
     {
-        if (solved || isValidating || ActiveField == null) return;
+        if (solved || isValidating || ActiveField == null)
+            return;
+
+        if (!ActiveField.interactable)
+            return;
+
+        // Maximum 4 characters
+        int maxLength = ActiveAnswer.ToString().Contains(".") ? 4 : 3;
+
+        if (ActiveField.text.Length >= maxLength)
+            return;
 
         ActiveField.text += digit;
     }
 
     public void OnDecimalPressed()
     {
-        if (solved || isValidating || ActiveField == null) return;
+        if (solved || isValidating || ActiveField == null)
+            return;
+
+        if (!ActiveField.interactable)
+            return;
+
+        int maxLength = ActiveAnswer.ToString().Contains(".") ? 4 : 3;
+
+        if (ActiveField.text.Length >= maxLength)
+            return;
 
         if (!ActiveField.text.Contains("."))
         {
@@ -119,35 +176,48 @@ public class SingleFieldDialerController : MonoBehaviour
 
     public void OnBackspacePressed()
     {
-        if (solved || isValidating || ActiveField == null) return;
+        if (solved || isValidating || ActiveField == null)
+            return;
+
+        if (!ActiveField.interactable)
+            return;
 
         if (ActiveField.text.Length > 0)
         {
-            ActiveField.text = ActiveField.text.Substring(0, ActiveField.text.Length - 1);
+            ActiveField.text =
+                ActiveField.text.Substring(0, ActiveField.text.Length - 1);
         }
     }
 
     public void OnValidatePressed()
     {
-        if (solved || isValidating || ActiveField == null) return;
+        if (solved || isValidating || ActiveField == null)
+            return;
 
-        // Block validation if field is empty or non-numeric
-        if (string.IsNullOrEmpty(ActiveField.text) || !float.TryParse(ActiveField.text, out float value))
+        if (string.IsNullOrEmpty(ActiveField.text))
+            return;
+
+        if (!float.TryParse(ActiveField.text, out float value))
             return;
 
         if (Mathf.Abs(value - ActiveAnswer) > tolerance)
         {
             wrongAttempts++;
+
+            if (audioSource != null && wrongSound != null)
+            {
+                audioSource.PlayOneShot(wrongSound);
+            }
+
             OnWrongAnswer?.Invoke();
 
-            if (autoFillButton != null && wrongAttempts >= maxWrongAttempts)
+            if (wrongAttempts >= maxWrongAttempts && autoFillButton != null)
                 autoFillButton.gameObject.SetActive(true);
 
             StartCoroutine(ShowWrongIconRoutine());
             return;
         }
 
-        // Lock validation during transition to prevent double-clicks from validating the next field simultaneously
         StartCoroutine(ValidateAndAdvanceRoutine());
     }
 
@@ -155,71 +225,98 @@ public class SingleFieldDialerController : MonoBehaviour
     {
         isValidating = true;
 
-        // 1. Mark current field icon as correct
-        if (ActiveImageSlot != null)
+        if (ActiveImage != null)
         {
-            ActiveImageSlot.sprite = correctSprite;
-            ActiveImageSlot.gameObject.SetActive(true);
+            ActiveImage.sprite = correctSprite;
+            ActiveImage.gameObject.SetActive(true);
         }
 
-        // 2. Lock current field completely
-        if (ActiveField != null)
+        if (audioSource != null && correctSound != null)
         {
-            ActiveField.interactable = false;
+            audioSource.PlayOneShot(correctSound);
+        }
+
+        // Lock this field permanently
+        if (CurrentField != null)
+        {
+            CurrentField.solved = true;
+            CurrentField.inputField.interactable = false;
         }
 
         OnCorrectAnswer?.Invoke();
 
-        // 3. Reset attempts for the next individual field
         wrongAttempts = 0;
+
         if (autoFillButton != null)
             autoFillButton.gameObject.SetActive(false);
 
-        // Wait one frame
         yield return null;
 
-        // Unlock the page
         slideController?.EnableNavigationButtons();
         PageNavigationController.RequestNavigationUnlock();
 
-        // Stop validating
         isValidating = false;
+
+        MoveToNextField();
     }
 
     public void AutoFill()
     {
-        if (solved || isValidating || ActiveField == null) return;
+        if (solved || isValidating || ActiveField == null)
+            return;
 
         ActiveField.text = ActiveAnswer.ToString();
         OnValidatePressed();
     }
-
     private void ActivateOnlyCurrentField()
     {
-        for (int i = 0; i < answerFields.Length; i++)
+        // Disable all fields first
+        foreach (PageField field in pageFields)
         {
-            if (answerFields[i] != null)
-            {
-                // Strict isolation: ONLY activeFieldIndex is interactable, all others disabled
-                answerFields[i].interactable = (i == activeFieldIndex);
-            }
+            if (field.inputField != null)
+                field.inputField.interactable = false;
         }
 
-        if (ActiveField != null)
+        // Enable only the field belonging to the current page
+        if (CurrentField != null &&
+            CurrentField.inputField != null &&
+            !CurrentField.solved)
         {
-            ActiveField.Select();
-            ActiveField.ActivateInputField();
+            CurrentField.inputField.interactable = true;
+            CurrentField.inputField.Select();
+            CurrentField.inputField.ActivateInputField();
         }
     }
 
-    void FinishPuzzle()
+    private void OnEnable()
+    {
+        PageNavigationController.OnPageChanged += OnPageChanged;
+
+        // Handles the case where this object is enabled
+        // after the page has already changed.
+        ActivateOnlyCurrentField();
+    }
+
+    private void OnDisable()
+    {
+        PageNavigationController.OnPageChanged -= OnPageChanged;
+    }
+
+    private void OnPageChanged(int pageIndex)
+    {
+        ActivateOnlyCurrentField();
+    }
+
+    private void FinishPuzzle()
     {
         solved = true;
 
-        if (validateButton) validateButton.interactable = false;
-        if (autoFillButton) autoFillButton.gameObject.SetActive(false);
+        if (validateButton != null)
+            validateButton.interactable = false;
 
-        // Unlock page navigation upon completing all elements
+        if (autoFillButton != null)
+            autoFillButton.gameObject.SetActive(false);
+
         slideController?.EnableNavigationButtons();
         PageNavigationController.RequestNavigationUnlock();
 
@@ -230,45 +327,50 @@ public class SingleFieldDialerController : MonoBehaviour
     {
         solved = false;
         isValidating = false;
-        activeFieldIndex = 0;
         wrongAttempts = 0;
 
-        if (validateButton) validateButton.interactable = true;
-        if (autoFillButton) autoFillButton.gameObject.SetActive(false);
+        if (validateButton != null)
+            validateButton.interactable = true;
 
-        // Reset image slots
-        for (int i = 0; i < answerImageSlots.Length; i++)
+        if (autoFillButton != null)
+            autoFillButton.gameObject.SetActive(false);
+
+        foreach (PageField field in pageFields)
         {
-            if (answerImageSlots[i] != null)
+            field.solved = false;
+
+            if (field.inputField != null)
             {
-                answerImageSlots[i].gameObject.SetActive(false);
+                field.inputField.text = "";
+                field.inputField.interactable = false;
             }
-        }
 
-        // Clear all fields and disable all except index 0
-        for (int i = 0; i < answerFields.Length; i++)
-        {
-            if (answerFields[i] != null)
+            if (field.feedbackImage != null)
             {
-                answerFields[i].text = "";
-                answerFields[i].interactable = (i == 0);
+                field.feedbackImage.gameObject.SetActive(false);
             }
         }
 
         ActivateOnlyCurrentField();
     }
-   
+
     public void MoveToNextField()
-{
-    if (activeFieldIndex < answerFields.Length - 1)
     {
-        activeFieldIndex++;
-        ActivateOnlyCurrentField();
+        bool allSolved = true;
+
+        foreach (PageField field in pageFields)
+        {
+            if (!field.solved)
+            {
+                allSolved = false;
+                break;
+            }
+        }
+
+        if (allSolved)
+        {
+            FinishPuzzle();
+        }
     }
-    else
-    {
-        FinishPuzzle();
-    }
-}
 
 }
