@@ -61,6 +61,7 @@ public class ScrewGaugeRotateController : MonoBehaviour
     private readonly HashSet<int> completedPages = new HashSet<int>();
     private readonly Dictionary<int, Vector3> completedPositions = new Dictionary<int, Vector3>();
     private readonly Dictionary<int, Quaternion> completedRotations = new Dictionary<int, Quaternion>();
+    private readonly Dictionary<int, string> completedTexts = new Dictionary<int, string>();
 
     private void Awake()
     {
@@ -102,9 +103,8 @@ public class ScrewGaugeRotateController : MonoBehaviour
 
         currentConfig = GetConfigByPageIndex(pageIndex);
 
-        // Hide temporary FX and Counter text
+        // Hide temporary FX on page transition
         if (curvedArrowFX != null) curvedArrowFX.SetActive(false);
-        if (counterText != null) counterText.gameObject.SetActive(false);
 
         if (currentConfig != null)
         {
@@ -116,6 +116,20 @@ public class ScrewGaugeRotateController : MonoBehaviour
             // Ensure highlights are maintained if page was previously finished
             ResetHighlightsForConfig(currentConfig, isAlreadyCompleted);
 
+            // Manage counter text display persistence
+            if (counterText != null)
+            {
+                if (isAlreadyCompleted && completedTexts.TryGetValue(pageIndex, out string savedText))
+                {
+                    counterText.text = savedText;
+                    counterText.gameObject.SetActive(true);
+                }
+                else
+                {
+                    counterText.gameObject.SetActive(false);
+                }
+            }
+
             // Restore exact final position and rotation to prevent PersistentAssetController from resetting it
             if (isAlreadyCompleted && completedPositions.ContainsKey(pageIndex))
             {
@@ -126,6 +140,9 @@ public class ScrewGaugeRotateController : MonoBehaviour
         {
             if (rotateButton != null)
                 rotateButton.interactable = false;
+
+            if (counterText != null)
+                counterText.gameObject.SetActive(false);
         }
     }
 
@@ -144,6 +161,12 @@ public class ScrewGaugeRotateController : MonoBehaviour
         if (completedRotations.TryGetValue(pageIndex, out Quaternion targetRot))
         {
             thimbleTransform.rotation = targetRot;
+        }
+
+        if (counterText != null && completedTexts.TryGetValue(pageIndex, out string savedText))
+        {
+            counterText.text = savedText;
+            counterText.gameObject.SetActive(true);
         }
     }
 
@@ -225,17 +248,22 @@ public class ScrewGaugeRotateController : MonoBehaviour
         thimbleTransform.position = finalPos;
         thimbleTransform.rotation = finalRot;
 
+        string finalText = totalRotations.ToString();
         if (counterText != null)
-            counterText.text = totalRotations.ToString();
+        {
+            counterText.text = finalText;
+            counterText.gameObject.SetActive(true); // Ensure text stays visible
+        }
 
         // Hide curved arrow FX
         if (curvedArrowFX != null)
             curvedArrowFX.SetActive(false);
 
-        // Record page completion and save final transform state for persistence on back navigation
+        // Record page completion and save final transform + counter state for persistence on back navigation
         completedPages.Add(activePageIndex);
         completedPositions[activePageIndex] = finalPos;
         completedRotations[activePageIndex] = finalRot;
+        completedTexts[activePageIndex] = finalText;
 
         isRotating = false;
 
