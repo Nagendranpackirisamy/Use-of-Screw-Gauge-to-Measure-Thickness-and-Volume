@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 
 public class ScrewGaugeController : MonoBehaviour
@@ -14,6 +15,18 @@ public class ScrewGaugeController : MonoBehaviour
         [Tooltip("Required Slider Value")]
         public float requiredValue;
     }
+
+    [System.Serializable]
+    private class GaugeTransformState
+    {
+        public Vector3 screwLocalPosition;
+
+        public Vector3 thimbleLocalPosition;
+        public Quaternion thimbleLocalRotation;
+    }
+
+    private Dictionary<int, GaugeTransformState> pageTransformStates = new();
+
 
     [Header("UI")]
     [SerializeField] private Slider slider;
@@ -124,6 +137,10 @@ private void OnPageChanged(int page)
     {
         PageNavigationController.RequestNavigationUnlock();
     }
+
+    //RestoreSavedTransform(page);
+
+    StartCoroutine(RestoreNextFrame(page));
 }
 
     private void OnSliderChanged(float value)
@@ -135,6 +152,8 @@ private void OnPageChanged(int page)
         UpdateGauge(value);
 
         CheckPageCompletion(currentPage);
+
+        SaveCurrentTransform(currentPage);
     }
 
     private void CheckPageCompletion(int page)
@@ -262,5 +281,31 @@ private void OnPageChanged(int page)
 
         if (correctImage != null)
             correctImage.SetActive(false);
+    }
+
+    private void SaveCurrentTransform(int page)
+    {
+        pageTransformStates[page] = new GaugeTransformState
+        {
+            screwLocalPosition = screw.localPosition,
+            thimbleLocalPosition = thimble.localPosition,
+            thimbleLocalRotation = thimble.localRotation
+        };
+    }
+
+    private void RestoreSavedTransform(int page)
+    {
+        if (!pageTransformStates.TryGetValue(page, out var state))
+            return;
+
+        screw.localPosition = state.screwLocalPosition;
+        thimble.localPosition = state.thimbleLocalPosition;
+        thimble.localRotation = state.thimbleLocalRotation;
+    }
+
+    private IEnumerator RestoreNextFrame(int page)
+    {
+        yield return null;
+        RestoreSavedTransform(page);
     }
 }
