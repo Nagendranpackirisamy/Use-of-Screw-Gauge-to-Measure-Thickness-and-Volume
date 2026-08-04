@@ -32,6 +32,10 @@ public class DropdownMainButton : MonoBehaviour
     [SerializeField] private AudioClip correctClip;
     [SerializeField] private AudioClip wrongClip;
 
+    [Header("Camera")]
+    private GlobalCameraController cameraController;
+    [SerializeField] private Transform cameraResetPoint;
+
     [Header("Optional Behaviour")]
     [SerializeField] private bool disableButtonOnCorrect = true;
 
@@ -47,12 +51,17 @@ public class DropdownMainButton : MonoBehaviour
 
     private bool hasSelected = true;
 
+    // Tracks whether this dropdown has been answered correctly
+    private bool isAnsweredCorrectly = false;
+
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
 
         if (button != null)
             button.onClick.AddListener(OnMainClick);
+
+        cameraController = FindFirstObjectByType<GlobalCameraController>();
     }
 
     private void OnMainClick()
@@ -82,11 +91,38 @@ public class DropdownMainButton : MonoBehaviour
         hasSelected = false;
     }
 
+    /// <summary>
+    /// Returns whether this dropdown is currently correct.
+    /// </summary>
+    public bool IsCorrect()
+    {
+        return isAnsweredCorrectly;
+    }
+
+    /// <summary>
+    /// Checks whether every DropdownMainButton in the scene is correct.
+    /// </summary>
+    private bool AreAllDropdownsCorrect()
+    {
+        DropdownMainButton[] dropdowns = FindObjectsOfType<DropdownMainButton>(true);
+
+        foreach (DropdownMainButton dropdown in dropdowns)
+        {
+            if (!dropdown.IsCorrect())
+                return false;
+        }
+
+        return true;
+    }
+
     public void OnOptionSelected(int index, bool isCorrect, string text)
     {
         hasSelected = true;
 
-        // Update text
+        // Save current state
+        isAnsweredCorrectly = isCorrect;
+
+        // Update output text
         if (outputText != null)
             outputText.text = text;
 
@@ -94,7 +130,7 @@ public class DropdownMainButton : MonoBehaviour
         if (currentFeedback != null)
             Destroy(currentFeedback);
 
-        // Choose prefab
+        // Select feedback prefab
         GameObject prefab = isCorrect ? correctPrefab : wrongPrefab;
 
         if (prefab != null)
@@ -111,28 +147,51 @@ public class DropdownMainButton : MonoBehaviour
             feedbackRect.localScale = Vector3.one;
         }
 
-        // Audio
+        // Play audio
         if (audioSource != null)
-            audioSource.PlayOneShot(isCorrect ? correctClip : wrongClip);
+        {
+            AudioClip clip = isCorrect ? correctClip : wrongClip;
+
+            if (clip != null)
+                audioSource.PlayOneShot(clip);
+        }
+
 
         if (isCorrect)
         {
-            // 🔥 KEY CHANGE → Unlock Navigation
-            PageNavigationController.RequestNavigationUnlock();
+            //Camera Position Restart
+            cameraController.MoveTo(cameraResetPoint);
 
-            if (disableButtonOnCorrect)
+            // Unlock navigation ONLY if every dropdown is correct
+            if (AreAllDropdownsCorrect())
             {
-                var img = GetComponent<Image>();
-                if (img) Destroy(img);
-
-                if (button) Destroy(button);
+                Debug.Log("All dropdowns are correct. Navigation unlocked.");
+                PageNavigationController.RequestNavigationUnlock();
             }
 
+            // Disable this dropdown after correct answer
+            if (disableButtonOnCorrect)
+            {
+            //    Image img = GetComponent<Image>();
+            //    if (img != null)
+            //        Destroy(img);
+
+                if (button != null)
+                    button.interactable = false;
+            
+            }
+
+            // Destroy popup
             if (currentPopup != null)
+            {
                 Destroy(currentPopup.gameObject);
+                currentPopup = null;
+                popupScript = null;
+            }
         }
         else
         {
+            // Hide popup if wrong
             if (currentPopup != null)
                 currentPopup.gameObject.SetActive(false);
         }

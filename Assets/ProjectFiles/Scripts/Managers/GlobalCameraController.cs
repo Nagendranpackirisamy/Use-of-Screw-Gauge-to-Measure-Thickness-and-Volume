@@ -100,6 +100,7 @@ public class GlobalCameraController : MonoBehaviour
     public void MoveTo(Transform target)
     {
         if (target == null) return;
+
         StartMove(target);
     }
 

@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 167fff0b12197434ab40b1dcd670f0e1, type: 3}
-  m_Name: 27
+  m_Name: Page1-5
   m_EditorClassIdentifier: Assembly-CSharp::DropdownData
   options:
-  - Cell Membrane
-  - Spherical
-  - Spherical
+  - Ratchet
+  - Screw
+  - Main (Pitch) Scale
   correctIndex: 0
