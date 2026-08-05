@@ -12,14 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d01fd2d64a9249049aaa77d5c12a82fe, type: 3}
   m_Name: Question 8
   m_EditorClassIdentifier: 
-  questionText: '8. A student measures the diameter of a wire using a screw gauge.
-    The main scale reading is 4 mm and the
-
-    32nd division of the circular scale
-    coincides with the main scale. If the least count of the screw gauge is 0.01
-
-    and
-    the positive zero error is 0.02 mm, the correct value of its diameter is:'
+  questionText: 8. A wire's diameter is measured with a screw gauge. Main scale =
+    4 mm, circular scale = 32 divisions, least count = 0.01 mm, and positive zero
+    error = 0.02 mm. Find the correct diameter.
   referenceImage: {fileID: 0}
   explanationText: 'Correct reading = Main scale reading + coinciding division x
     least count - Zero error (with sign)
