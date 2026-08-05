@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 
 public class ScrewGaugeController : MonoBehaviour
@@ -14,6 +15,17 @@ public class ScrewGaugeController : MonoBehaviour
         [Tooltip("Required Slider Value")]
         public float requiredValue;
     }
+
+    [System.Serializable]
+    private class GaugeTransformState
+    {
+        public Vector3 screwLocalPosition;
+
+        public Vector3 thimbleLocalPosition;
+        public Quaternion thimbleLocalRotation;
+    }
+
+    private Dictionary<int, GaugeTransformState> pageTransformStates = new();
 
     [Header("UI")]
     [SerializeField] private Slider slider;
@@ -97,44 +109,80 @@ public class ScrewGaugeController : MonoBehaviour
             sliderDecreaseButton.onClick.RemoveAllListeners();
     }
 
-private void OnPageChanged(int page)
-{
-    float value = 0f;
-
-    if (sliderValues.TryGetValue(page, out float savedValue))
-        value = savedValue;
-
-    slider.SetValueWithoutNotify(value);
-
-    UpdateGauge(value);
-
-    bool hasSliderTask = TryGetRequiredValue(page, out _);
-
-    // Enable slider only if this page has a required value
-    slider.interactable = hasSliderTask && !completedPages.Contains(page);
-    sliderIncreaseButton.interactable = hasSliderTask && !completedPages.Contains(page);
-    sliderDecreaseButton.interactable = hasSliderTask && !completedPages.Contains(page);
-
-    // Show correct image only for completed slider pages
-    if (correctImage != null)
-        correctImage.SetActive(hasSliderTask && completedPages.Contains(page));
-
-    // If this page has no slider task, unlock navigation immediately
-    if (!hasSliderTask)
+    private void OnPageChanged(int page)
     {
-        PageNavigationController.RequestNavigationUnlock();
+        // Check if this page is registered in pageSettings. If not, do not control this page.
+        bool hasSliderTask = TryGetRequiredValue(page, out float requiredValue);
+        if (!hasSliderTask)
+        {
+            if (correctImage != null)
+                correctImage.SetActive(false);
+            return;
+        }
+
+        float value;
+
+        if (sliderValues.TryGetValue(page, out float savedValue))
+        {
+            value = savedValue;
+        }
+        else
+        {
+            value = GetSliderValueFromScrewPosition();
+            sliderValues[page] = value;
+        }
+
+        slider.SetValueWithoutNotify(value);
+
+        UpdateGauge(value);
+
+        bool alreadyCompleted = completedPages.Contains(page);
+
+        // Automatically complete the page if the screw position
+        // already matches the required value.
+        if (!alreadyCompleted)
+        {
+            if (Mathf.Abs(value - requiredValue) <= 0.01f)
+            {
+                completedPages.Add(page);
+                alreadyCompleted = true;
+            }
+        }
+
+        slider.interactable = !alreadyCompleted;
+
+        if (sliderIncreaseButton != null)
+            sliderIncreaseButton.interactable = !alreadyCompleted;
+
+        if (sliderDecreaseButton != null)
+            sliderDecreaseButton.interactable = !alreadyCompleted;
+
+        if (correctImage != null)
+            correctImage.SetActive(alreadyCompleted);
+
+        if (alreadyCompleted)
+        {
+            PageNavigationController.RequestNavigationUnlock();
+        }
+
+        StartCoroutine(RestoreNextFrame(page));
     }
-}
 
     private void OnSliderChanged(float value)
     {
         int currentPage = PageNavigationController.CurrentIndex;
+
+        // Do not update or control if current page is not in pageSettings
+        if (!TryGetRequiredValue(currentPage, out _))
+            return;
 
         sliderValues[currentPage] = value;
 
         UpdateGauge(value);
 
         CheckPageCompletion(currentPage);
+
+        SaveCurrentTransform(currentPage);
     }
 
     private void CheckPageCompletion(int page)
@@ -153,8 +201,8 @@ private void OnPageChanged(int page)
             completedPages.Add(page);
 
             slider.interactable = false;
-            sliderIncreaseButton.interactable = false;
-            sliderDecreaseButton.interactable = false;
+            if (sliderIncreaseButton != null) sliderIncreaseButton.interactable = false;
+            if (sliderDecreaseButton != null) sliderDecreaseButton.interactable = false;
 
             if (correctImage != null)
                 correctImage.SetActive(true);
@@ -211,7 +259,7 @@ private void OnPageChanged(int page)
 
     private void MoveThimble(float value)
     {
-        if( thimble == null || thimbleStartPoint == null || thimbleEndPoint == null)
+        if (thimble == null || thimbleStartPoint == null || thimbleEndPoint == null)
             return;
 
         thimble.position = Vector3.Lerp(
@@ -219,7 +267,6 @@ private void OnPageChanged(int page)
             thimbleEndPoint.position,
             value);
     }
-
 
     public bool IsPageCompleted(int page)
     {
@@ -237,6 +284,9 @@ private void OnPageChanged(int page)
     public void ResetCurrentPage()
     {
         int page = PageNavigationController.CurrentIndex;
+
+        if (!TryGetRequiredValue(page, out _))
+            return;
 
         sliderValues[page] = 0f;
         completedPages.Remove(page);
@@ -262,5 +312,66 @@ private void OnPageChanged(int page)
 
         if (correctImage != null)
             correctImage.SetActive(false);
+    }
+
+    private void SaveCurrentTransform(int page)
+    {
+        if (screw == null || thimble == null) return;
+
+        pageTransformStates[page] = new GaugeTransformState
+        {
+            screwLocalPosition = screw.localPosition,
+            thimbleLocalPosition = thimble.localPosition,
+            thimbleLocalRotation = thimble.localRotation
+        };
+    }
+
+    private void RestoreSavedTransform(int page)
+    {
+        if (!pageTransformStates.TryGetValue(page, out var state))
+            return;
+
+        if (screw != null) screw.localPosition = state.screwLocalPosition;
+        if (thimble != null)
+        {
+            thimble.localPosition = state.thimbleLocalPosition;
+            thimble.localRotation = state.thimbleLocalRotation;
+        }
+    }
+
+    private IEnumerator RestoreNextFrame(int page)
+    {
+        yield return null;
+
+        // Double check configured page status before restoring
+        if (!TryGetRequiredValue(page, out _))
+            yield break;
+
+        RestoreSavedTransform(page);
+
+        float value = GetSliderValueFromScrewPosition();
+
+        sliderValues[page] = value;
+
+        slider.SetValueWithoutNotify(value);
+    }
+
+    private float GetSliderValueFromScrewPosition()
+    {
+        if (screw == null || screwStartPoint == null || screwEndPoint == null)
+            return 0f;
+
+        Vector3 start = screwStartPoint.position;
+        Vector3 end = screwEndPoint.position;
+        Vector3 current = screw.position;
+
+        float totalDistance = Vector3.Distance(start, end);
+
+        if (totalDistance <= Mathf.Epsilon)
+            return 0f;
+
+        float currentDistance = Vector3.Distance(start, current);
+
+        return Mathf.Clamp01(currentDistance / totalDistance);
     }
 }
