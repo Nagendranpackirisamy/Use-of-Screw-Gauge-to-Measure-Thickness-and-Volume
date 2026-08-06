@@ -41,6 +41,10 @@ public class ScreenToWorldSnapManager : MonoBehaviour
     [Tooltip("Seconds to animate into place on snap / return. Set 0 for instant.")]
     public float snapAnimDuration = 0.15f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip correctSound;
+
     // Fires once, the first time ALL assigned draggables are correctly snapped.
     // (Plain C# event   not shown in Inspector, [Header]/[Tooltip] aren't valid here.)
     public event Action OnAllSnapped;
@@ -244,6 +248,11 @@ public class ScreenToWorldSnapManager : MonoBehaviour
             state.rect.localScale = Vector3.one;
 
             StopAndAnimate(state.rect, Vector2.zero);
+        }
+
+        if(audioSource != null && correctSound != null)
+        {
+            audioSource.PlayOneShot(correctSound);
         }
 
         _correctSnapCount++;
