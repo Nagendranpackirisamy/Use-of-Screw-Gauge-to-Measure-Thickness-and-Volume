@@ -14,6 +14,13 @@ public class ScrewGaugeController : MonoBehaviour
         [Range(0f, 1f)]
         [Tooltip("Required Slider Value")]
         public float requiredValue;
+
+        [Header("Optional Custom Thimble Position")]
+        public bool useCustomThimblePosition;
+
+        public Vector3 customThimbleLocalPosition;
+
+        public Vector3 customThimbleLocalEulerRotation;
     }
 
     [System.Serializable]
@@ -251,21 +258,52 @@ public class ScrewGaugeController : MonoBehaviour
         if (thimble == null)
             return;
 
+        int currentPage = PageNavigationController.CurrentIndex;
+
+        if (TryGetPageSetting(currentPage, out PageSetting setting) &&
+            setting.useCustomThimblePosition &&
+            Mathf.Abs(value - setting.requiredValue) <= 0.01f)
+        {
+            thimble.localRotation = Quaternion.Euler(setting.customThimbleLocalEulerRotation);
+            return;
+        }
+
         float angle = value * rotations * 360f;
 
-        // Always rotate around the X axis
+        // Default behaviour
         thimble.localRotation = Quaternion.Euler(angle, 0f, 0f);
     }
 
     private void MoveThimble(float value)
     {
-        if (thimble == null || thimbleStartPoint == null || thimbleEndPoint == null)
+        if (thimble == null)
             return;
 
-        thimble.position = Vector3.Lerp(
-            thimbleStartPoint.position,
-            thimbleEndPoint.position,
-            value);
+        int currentPage = PageNavigationController.CurrentIndex;
+
+        if (TryGetPageSetting(currentPage, out PageSetting setting) &&
+            setting.useCustomThimblePosition)
+        {
+            if (Mathf.Abs(value - setting.requiredValue) <= 0.01f)
+            {
+                thimble.localPosition = setting.customThimbleLocalPosition;
+                thimble.localRotation = Quaternion.Euler(setting.customThimbleLocalEulerRotation);
+            }
+            else
+            {
+                thimble.position = Vector3.Lerp(
+                    thimbleStartPoint.position,
+                    thimbleEndPoint.position,
+                    value);
+
+                float angle = value * rotations * 360f;
+                thimble.localRotation = Quaternion.Euler(angle, 0f, 0f);
+            }
+
+            return;
+        }
+
+        // For pages without a custom transform, do nothing.
     }
 
     public bool IsPageCompleted(int page)
@@ -373,5 +411,20 @@ public class ScrewGaugeController : MonoBehaviour
         float currentDistance = Vector3.Distance(start, current);
 
         return Mathf.Clamp01(currentDistance / totalDistance);
+    }
+
+    private bool TryGetPageSetting(int page, out PageSetting setting)
+    {
+        foreach (PageSetting s in pageSettings)
+        {
+            if (s.pageIndex == page)
+            {
+                setting = s;
+                return true;
+            }
+        }
+
+        setting = null;
+        return false;
     }
 }
