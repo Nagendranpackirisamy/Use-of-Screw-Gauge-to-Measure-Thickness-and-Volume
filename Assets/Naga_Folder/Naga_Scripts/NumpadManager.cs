@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 public class NumpadManager : MonoBehaviour
 {
@@ -38,6 +39,9 @@ public class NumpadManager : MonoBehaviour
     [Header("Settings")]
     public int maxAttempts = 3;
     public float tolerance = 0.001f;
+
+    [Header("Events")]
+    public UnityEvent OnAllAnswersCorrect;
 
     private int activeFieldIndex = 0;
     private int attempts = 0;
@@ -360,5 +364,7 @@ public class NumpadManager : MonoBehaviour
         {
             explanationPanel.SetActive(true);
         }
+
+        OnAllAnswersCorrect?.Invoke();
     }
 }

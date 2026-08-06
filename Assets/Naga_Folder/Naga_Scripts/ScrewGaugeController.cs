@@ -58,6 +58,10 @@ public class ScrewGaugeController : MonoBehaviour
 
     [SerializeField] private float rotations = 1f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip correctImageAudio;
+
     // Runtime Data
     private Dictionary<int, float> sliderValues = new();
     private HashSet<int> completedPages = new();
@@ -213,6 +217,7 @@ public class ScrewGaugeController : MonoBehaviour
 
             if (correctImage != null)
                 correctImage.SetActive(true);
+            PlayAudio(correctImageAudio);
 
             PageNavigationController.RequestNavigationUnlock();
 
@@ -426,5 +431,12 @@ public class ScrewGaugeController : MonoBehaviour
 
         setting = null;
         return false;
+    }
+
+    public void PlayAudio(AudioClip audio)
+    {
+        audioSource.PlayOneShot(audio);
+        Debug.Log("Audio Playing");
+        Debug.Log(audio.name);
     }
 }
