@@ -179,22 +179,28 @@ public class ScrewGaugeController : MonoBehaviour
         StartCoroutine(RestoreNextFrame(page));
     }
 
-    private void OnSliderChanged(float value)
+private void OnSliderChanged(float value)
+{
+    int currentPage = PageNavigationController.CurrentIndex;
+
+    if (!TryGetRequiredValue(currentPage, out float requiredValue))
+        return;
+
+    // Prevent going below the required value
+    if (value < requiredValue)
     {
-        int currentPage = PageNavigationController.CurrentIndex;
-
-        // Do not update or control if current page is not in pageSettings
-        if (!TryGetRequiredValue(currentPage, out _))
-            return;
-
-        sliderValues[currentPage] = value;
-
-        UpdateGauge(value);
-
-        CheckPageCompletion(currentPage);
-
-        SaveCurrentTransform(currentPage);
+        value = requiredValue;
+        slider.SetValueWithoutNotify(value);
     }
+
+    sliderValues[currentPage] = value;
+
+    UpdateGauge(value);
+
+    CheckPageCompletion(currentPage);
+
+    SaveCurrentTransform(currentPage);
+}
 
     private void CheckPageCompletion(int page)
     {
