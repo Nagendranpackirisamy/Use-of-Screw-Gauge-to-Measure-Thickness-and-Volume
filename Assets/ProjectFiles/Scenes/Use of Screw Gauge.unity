@@ -1629,7 +1629,7 @@ MonoBehaviour:
   wrongPrefab: {fileID: 1434633464582821261, guid: 60bedba2549205c41b5a97a4af5c8677, type: 3}
   spawnSide: 1
   extraOffset: 30
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 3489831641231628351}
   correctClip: {fileID: 8300000, guid: ddb9b58d2abd67c4e9b146671ce2eb77, type: 3}
   wrongClip: {fileID: 8300000, guid: a762bb80a6ad8e44ba591816638bd09e, type: 3}
   cameraResetPoint: {fileID: 252769627}
@@ -3607,7 +3607,7 @@ MonoBehaviour:
   wrongPrefab: {fileID: 1434633464582821261, guid: 60bedba2549205c41b5a97a4af5c8677, type: 3}
   spawnSide: 1
   extraOffset: 30
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 3489831641231628351}
   correctClip: {fileID: 8300000, guid: ddb9b58d2abd67c4e9b146671ce2eb77, type: 3}
   wrongClip: {fileID: 8300000, guid: a762bb80a6ad8e44ba591816638bd09e, type: 3}
   cameraResetPoint: {fileID: 252769627}
@@ -4385,7 +4385,7 @@ MonoBehaviour:
   wrongPrefab: {fileID: 1434633464582821261, guid: 60bedba2549205c41b5a97a4af5c8677, type: 3}
   spawnSide: 1
   extraOffset: 30
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 3489831641231628351}
   correctClip: {fileID: 8300000, guid: ddb9b58d2abd67c4e9b146671ce2eb77, type: 3}
   wrongClip: {fileID: 8300000, guid: a762bb80a6ad8e44ba591816638bd09e, type: 3}
   cameraResetPoint: {fileID: 252769627}
@@ -9406,6 +9406,10 @@ PrefabInstance:
       value: -103.4225
       objectReference: {fileID: 0}
     - target: {fileID: 8855782980237547696, guid: 148e3734bc293a24eb6c0538bc2684e5, type: 3}
+      propertyPath: audioSource
+      value: 
+      objectReference: {fileID: 3489831641231628351}
+    - target: {fileID: 8855782980237547696, guid: 148e3734bc293a24eb6c0538bc2684e5, type: 3}
       propertyPath: questionData
       value: 
       objectReference: {fileID: 11400000, guid: 9c0d45f06c8dbf54880a8d0de9bef1b4, type: 2}
@@ -11157,7 +11161,7 @@ MonoBehaviour:
   wrongPrefab: {fileID: 1434633464582821261, guid: 60bedba2549205c41b5a97a4af5c8677, type: 3}
   spawnSide: 1
   extraOffset: 30
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 3489831641231628351}
   correctClip: {fileID: 8300000, guid: ddb9b58d2abd67c4e9b146671ce2eb77, type: 3}
   wrongClip: {fileID: 8300000, guid: a762bb80a6ad8e44ba591816638bd09e, type: 3}
   cameraResetPoint: {fileID: 252769627}
@@ -11588,7 +11592,7 @@ MonoBehaviour:
   wrongPrefab: {fileID: 1434633464582821261, guid: 60bedba2549205c41b5a97a4af5c8677, type: 3}
   spawnSide: 0
   extraOffset: 30
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 3489831641231628351}
   correctClip: {fileID: 8300000, guid: ddb9b58d2abd67c4e9b146671ce2eb77, type: 3}
   wrongClip: {fileID: 8300000, guid: a762bb80a6ad8e44ba591816638bd09e, type: 3}
   cameraResetPoint: {fileID: 252769627}
@@ -13028,7 +13032,7 @@ MonoBehaviour:
   wrongPrefab: {fileID: 1434633464582821261, guid: 60bedba2549205c41b5a97a4af5c8677, type: 3}
   spawnSide: 1
   extraOffset: 30
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 3489831641231628351}
   correctClip: {fileID: 8300000, guid: ddb9b58d2abd67c4e9b146671ce2eb77, type: 3}
   wrongClip: {fileID: 8300000, guid: a762bb80a6ad8e44ba591816638bd09e, type: 3}
   cameraResetPoint: {fileID: 252769627}
@@ -13527,121 +13531,145 @@ MonoBehaviour:
   pageSettings:
   - pageIndex: 10
     requiredValue: 0
+    direction: 1
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1008, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 279.919, y: 180, z: 180}
   - pageIndex: 14
     requiredValue: 1
+    direction: 0
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1563, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 115.039, y: 180, z: 180}
   - pageIndex: 16
     requiredValue: 0.1
+    direction: 1
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1016, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 52.389, y: 180, z: 180}
   - pageIndex: 22
     requiredValue: 1
+    direction: 0
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1563, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 115.039, y: 180, z: 180}
-  - pageIndex: 15
+  - pageIndex: 0
     requiredValue: 0.1
+    direction: 0
     useCustomThimblePosition: 0
     customThimbleLocalPosition: {x: 0, y: 0, z: 0}
     customThimbleLocalEulerRotation: {x: 0, y: 0, z: 0}
-  - pageIndex: 16
+  - pageIndex: 0
     requiredValue: 1
-    useCustomThimblePosition: 0
-    customThimbleLocalPosition: {x: 0, y: 0, z: 0}
-    customThimbleLocalEulerRotation: {x: 0, y: 0, z: 0}
-  - pageIndex: 17
-    requiredValue: 0.1
-    useCustomThimblePosition: 0
-    customThimbleLocalPosition: {x: 0, y: 0, z: 0}
-    customThimbleLocalEulerRotation: {x: 0, y: 0, z: 0}
-  - pageIndex: 18
-    requiredValue: 0.7
+    direction: 0
     useCustomThimblePosition: 0
     customThimbleLocalPosition: {x: 0, y: 0, z: 0}
     customThimbleLocalEulerRotation: {x: 0, y: 0, z: 0}
   - pageIndex: 0
     requiredValue: 0.1
+    direction: 0
+    useCustomThimblePosition: 0
+    customThimbleLocalPosition: {x: 0, y: 0, z: 0}
+    customThimbleLocalEulerRotation: {x: 0, y: 0, z: 0}
+  - pageIndex: 0
+    requiredValue: 0.7
+    direction: 0
+    useCustomThimblePosition: 0
+    customThimbleLocalPosition: {x: 0, y: 0, z: 0}
+    customThimbleLocalEulerRotation: {x: 0, y: 0, z: 0}
+  - pageIndex: 0
+    requiredValue: 0.1
+    direction: 0
     useCustomThimblePosition: 0
     customThimbleLocalPosition: {x: 0, y: 0, z: 0}
     customThimbleLocalEulerRotation: {x: 0, y: 0, z: 0}
   - pageIndex: 20
     requiredValue: 0.5
+    direction: 0
     useCustomThimblePosition: 0
     customThimbleLocalPosition: {x: 0, y: 0, z: 0}
     customThimbleLocalEulerRotation: {x: 0, y: 0, z: 0}
   - pageIndex: 21
     requiredValue: 0.1
+    direction: 0
     useCustomThimblePosition: 0
     customThimbleLocalPosition: {x: 0, y: 0, z: 0}
     customThimbleLocalEulerRotation: {x: 0, y: 0, z: 0}
   - pageIndex: 24
     requiredValue: 0.1
+    direction: 1
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1016, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 52.389, y: 180, z: 180}
   - pageIndex: 30
     requiredValue: 1
+    direction: 0
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1563, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 0, y: 0, z: 0}
   - pageIndex: 32
     requiredValue: 0.1
+    direction: 1
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1016, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 52.389, y: 180, z: 180}
   - pageIndex: 37
     requiredValue: 0.7
+    direction: 0
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1422, y: 0.1941519, z: -0.00000003463228}
     customThimbleLocalEulerRotation: {x: 64.489, y: 180, z: 180}
   - pageIndex: 39
     requiredValue: 0.1
+    direction: 1
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1016, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 52.389, y: 180, z: 180}
   - pageIndex: 45
     requiredValue: 0.5
+    direction: 0
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1297, y: 0.1941519, z: -0.00000003463228}
     customThimbleLocalEulerRotation: {x: 100.933, y: 180, z: 180}
   - pageIndex: 47
     requiredValue: 0.1
+    direction: 1
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1016, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 52.389, y: 180, z: 180}
   - pageIndex: 52
     requiredValue: 0.5
+    direction: 0
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1297, y: 0.1941519, z: -0.00000003463228}
     customThimbleLocalEulerRotation: {x: 100.933, y: 180, z: 180}
   - pageIndex: 54
     requiredValue: 0.1
+    direction: 1
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1016, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 52.389, y: 180, z: 180}
   - pageIndex: 60
     requiredValue: 0.5
+    direction: 0
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1297, y: 0.1941519, z: -0.00000003463228}
     customThimbleLocalEulerRotation: {x: 100.933, y: 180, z: 180}
   - pageIndex: 62
     requiredValue: 0.1
+    direction: 1
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1016, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 52.389, y: 180, z: 180}
   - pageIndex: 67
     requiredValue: 0.5
+    direction: 0
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1297, y: 0.1941519, z: -0.00000003463228}
     customThimbleLocalEulerRotation: {x: 100.933, y: 180, z: 180}
   - pageIndex: 69
     requiredValue: 0.1
+    direction: 1
     useCustomThimblePosition: 1
     customThimbleLocalPosition: {x: -0.1016, y: 0.1941519, z: -0.0000000372529}
     customThimbleLocalEulerRotation: {x: 52.389, y: 180, z: 180}
@@ -15090,6 +15118,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -103.4225
       objectReference: {fileID: 0}
+    - target: {fileID: 8855782980237547696, guid: 148e3734bc293a24eb6c0538bc2684e5, type: 3}
+      propertyPath: audioSource
+      value: 
+      objectReference: {fileID: 3489831641231628351}
     - target: {fileID: 8855782980237547696, guid: 148e3734bc293a24eb6c0538bc2684e5, type: 3}
       propertyPath: questionData
       value: 
@@ -40466,7 +40498,7 @@ MonoBehaviour:
   wrongPrefab: {fileID: 1434633464582821261, guid: 60bedba2549205c41b5a97a4af5c8677, type: 3}
   spawnSide: 1
   extraOffset: 30
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 3489831641231628351}
   correctClip: {fileID: 8300000, guid: ddb9b58d2abd67c4e9b146671ce2eb77, type: 3}
   wrongClip: {fileID: 8300000, guid: a762bb80a6ad8e44ba591816638bd09e, type: 3}
   cameraResetPoint: {fileID: 252769627}

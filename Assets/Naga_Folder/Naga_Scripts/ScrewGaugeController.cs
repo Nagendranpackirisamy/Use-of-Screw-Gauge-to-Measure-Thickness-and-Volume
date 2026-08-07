@@ -15,12 +15,20 @@ public class ScrewGaugeController : MonoBehaviour
         [Tooltip("Required Slider Value")]
         public float requiredValue;
 
+        public SliderDirection direction;
+
         [Header("Optional Custom Thimble Position")]
         public bool useCustomThimblePosition;
 
         public Vector3 customThimbleLocalPosition;
 
         public Vector3 customThimbleLocalEulerRotation;
+    }
+
+    public enum SliderDirection
+    {
+        Increase,
+        Decrease
     }
 
     [System.Serializable]
@@ -187,11 +195,27 @@ private void OnSliderChanged(float value)
         return;
 
     // Prevent going below the required value
-    // if (value < requiredValue)
-    // {
-    //     value = requiredValue;
-    //     slider.SetValueWithoutNotify(value);
-    // }
+if (TryGetPageSetting(currentPage, out PageSetting setting))
+{
+    if (setting.direction == SliderDirection.Decrease)
+    {
+        // Prevent moving below the required value.
+        if (value < requiredValue)
+        {
+            value = requiredValue;
+            slider.SetValueWithoutNotify(value);
+        }
+    }
+    else // Increase
+    {
+        // Prevent moving above the required value.
+        if (value > requiredValue)
+        {
+            value = requiredValue;
+            slider.SetValueWithoutNotify(value);
+        }
+    }
+}
 
     sliderValues[currentPage] = value;
 
@@ -227,7 +251,7 @@ private void OnSliderChanged(float value)
 
             PageNavigationController.RequestNavigationUnlock();
 
-            Debug.Log($"Page {page} Completed");
+            //Debug.Log($"Page {page} Completed");
         }
     }
 
@@ -442,7 +466,5 @@ private void OnSliderChanged(float value)
     public void PlayAudio(AudioClip audio)
     {
         audioSource.PlayOneShot(audio);
-        Debug.Log("Audio Playing");
-        Debug.Log(audio.name);
     }
 }
