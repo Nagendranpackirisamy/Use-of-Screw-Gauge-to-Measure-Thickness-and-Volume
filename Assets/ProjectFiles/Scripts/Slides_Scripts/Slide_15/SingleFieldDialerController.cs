@@ -12,9 +12,6 @@ public class SingleFieldDialerController : MonoBehaviour
         [Header("References")]
         public TMP_InputField inputField;
         public Image feedbackImage;
-        [Header("Audio")]
-
-
 
         [Header("Settings")]
         public float correctAnswer;
@@ -135,9 +132,11 @@ public class SingleFieldDialerController : MonoBehaviour
 
         isValidating = false;
     }
+
     public void OnDigitPressed(string digit)
     {
-        if (solved || isValidating || ActiveField == null)
+        // Added CurrentField.solved check
+        if (solved || isValidating || CurrentField == null || CurrentField.solved || ActiveField == null)
             return;
 
         if (!ActiveField.interactable)
@@ -154,7 +153,8 @@ public class SingleFieldDialerController : MonoBehaviour
 
     public void OnDecimalPressed()
     {
-        if (solved || isValidating || ActiveField == null)
+        // Added CurrentField.solved check
+        if (solved || isValidating || CurrentField == null || CurrentField.solved || ActiveField == null)
             return;
 
         if (!ActiveField.interactable)
@@ -176,7 +176,8 @@ public class SingleFieldDialerController : MonoBehaviour
 
     public void OnBackspacePressed()
     {
-        if (solved || isValidating || ActiveField == null)
+        // Added CurrentField.solved check
+        if (solved || isValidating || CurrentField == null || CurrentField.solved || ActiveField == null)
             return;
 
         if (!ActiveField.interactable)
@@ -191,7 +192,8 @@ public class SingleFieldDialerController : MonoBehaviour
 
     public void OnValidatePressed()
     {
-        if (solved || isValidating || ActiveField == null)
+        // FIX: Check CurrentField.solved to prevent re-validating an already solved field
+        if (solved || isValidating || CurrentField == null || CurrentField.solved || ActiveField == null)
             return;
 
         if (string.IsNullOrEmpty(ActiveField.text))
@@ -225,6 +227,13 @@ public class SingleFieldDialerController : MonoBehaviour
     {
         isValidating = true;
 
+        // Lock this field immediately at the start of the routine
+        if (CurrentField != null)
+        {
+            CurrentField.solved = true;
+            CurrentField.inputField.interactable = false;
+        }
+
         if (ActiveImage != null)
         {
             ActiveImage.sprite = correctSprite;
@@ -234,13 +243,6 @@ public class SingleFieldDialerController : MonoBehaviour
         if (audioSource != null && correctSound != null)
         {
             audioSource.PlayOneShot(correctSound);
-        }
-
-        // Lock this field permanently
-        if (CurrentField != null)
-        {
-            CurrentField.solved = true;
-            CurrentField.inputField.interactable = false;
         }
 
         OnCorrectAnswer?.Invoke();
@@ -262,12 +264,14 @@ public class SingleFieldDialerController : MonoBehaviour
 
     public void AutoFill()
     {
-        if (solved || isValidating || ActiveField == null)
+        // Added CurrentField.solved check
+        if (solved || isValidating || CurrentField == null || CurrentField.solved || ActiveField == null)
             return;
 
         ActiveField.text = ActiveAnswer.ToString();
         OnValidatePressed();
     }
+
     private void ActivateOnlyCurrentField()
     {
         // Disable all fields first
@@ -277,7 +281,7 @@ public class SingleFieldDialerController : MonoBehaviour
                 field.inputField.interactable = false;
         }
 
-        // Enable only the field belonging to the current page
+        // Enable only the field belonging to the current page if not already solved
         if (CurrentField != null &&
             CurrentField.inputField != null &&
             !CurrentField.solved)
@@ -372,5 +376,4 @@ public class SingleFieldDialerController : MonoBehaviour
             FinishPuzzle();
         }
     }
-
 }
