@@ -10408,6 +10408,10 @@ MonoBehaviour:
       stayInUpcomingPages: 0
       enableOnce: 0
       hasBeenEnabledOnce: 0
+    - panel: {fileID: 2046418833}
+      stayInUpcomingPages: 1
+      enableOnce: 0
+      hasBeenEnabledOnce: 0
   - pageName: Page 17
     pageText: Use the Slider to move the screw forward by rotating the ratchet will
       the wire id gently gripped between the screw and the stud.

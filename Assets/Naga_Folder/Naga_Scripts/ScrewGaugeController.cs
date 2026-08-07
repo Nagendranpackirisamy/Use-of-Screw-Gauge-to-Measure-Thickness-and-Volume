@@ -187,11 +187,11 @@ private void OnSliderChanged(float value)
         return;
 
     // Prevent going below the required value
-    if (value < requiredValue)
-    {
-        value = requiredValue;
-        slider.SetValueWithoutNotify(value);
-    }
+    // if (value < requiredValue)
+    // {
+    //     value = requiredValue;
+    //     slider.SetValueWithoutNotify(value);
+    // }
 
     sliderValues[currentPage] = value;
 
